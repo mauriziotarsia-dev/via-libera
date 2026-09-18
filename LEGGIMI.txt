@@ -1,0 +1,11 @@
+Via libera - versione app indipendente
+
+Carica TUTTI i file di questa cartella (non la cartella stessa) nella radice del sito:
+  index.html, sw.js, manifest.json, icon-180.png, icon-192.png, icon-512.png
+
+GitHub Pages: repository pubblico -> Add file -> Upload files -> Commit;
+poi Settings -> Pages -> Source "Deploy from a branch" -> Branch "main", cartella "/ (root)" -> Save.
+Il gioco sara' su https://NOMEUTENTE.github.io/NOMEREPOSITORY/
+
+Sull'iPhone: apri quell'indirizzo in Safari -> Condividi -> Aggiungi alla schermata Home.
+Le partite si salvano sul telefono. Dopo la prima apertura il gioco funziona anche senza rete.
