@@ -47,6 +47,14 @@
   --c-r:#E6503A; --c-y:#F5C02C; --c-b:#4B7BEA; --c-g:#35B98D; --c-h:#A30F2D; --mark:#FFD34D; --sign:#0E6E83;
   --tray:#6E4D2F; --tray-lip:#47301B; --plank:#7D5936; --floor:#12506A; --wave:#5FB3CC; --cellmark:#1A6180;
 }
+[data-skin="pixel"]{
+  --c-r:#F2452E; --c-y:#FFC21A; --c-b:#3B6CF0; --c-g:#2FBF5B; --c-h:#B5122F; --mark:#FFE14D; --sign:#3457D5;
+  --tray:#B26A33; --tray-lip:#4E270C; --floor:#58B646; --grass-a:#66C552; --grass-b:#58B646; --grass-d:#3E9435;
+}
+[data-skin="pastel"]{
+  --c-r:#F47C7C; --c-y:#FFD95A; --c-b:#7DB7F7; --c-g:#8DD68A; --c-h:#D6274A; --mark:#FF8A3D; --sign:#3D8BD4;
+  --tray:#8ED1F2; --tray-lip:#3E6B8A; --floor:#A6D970; --meadow:#B9E68A; --line-ink:#4A3B52;
+}
 
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overscroll-behavior:none}
@@ -140,6 +148,25 @@ button:focus-visible,.veh:focus-visible,input:focus-visible{outline:3px solid va
 }
 [data-skin="harbor"] .exit::before{top:-5px; background:#E6503A}
 [data-skin="harbor"] .exit::after{bottom:-5px; background:#35B98D}
+/* pixel: a wall of square blocks, hard edges everywhere */
+[data-skin="pixel"] .tray{
+  border-radius:3px;
+  background:
+    repeating-linear-gradient(90deg, rgba(62,28,6,.8) 0 2px, rgba(255,255,255,.26) 2px 4px, transparent 4px var(--frame)),
+    repeating-linear-gradient(0deg, rgba(62,28,6,.8) 0 2px, rgba(255,255,255,.26) 2px 4px, transparent 4px var(--frame)),
+    var(--tray);
+}
+[data-skin="pixel"] .grid,[data-skin="pixel"] .exit{border-radius:0}
+[data-skin="pixel"] .veh svg,[data-skin="pixel"] .floor,[data-skin="pixel"] .pv svg{shape-rendering:crispEdges}
+[data-skin="pixel"] .ghost::after{border-radius:0}
+/* pastel: a child's drawing, thick plum outlines, the sun in the corner */
+[data-skin="pastel"] .tray{border-radius:calc(var(--frame) * 2.3); box-shadow:inset 0 0 0 3px var(--tray-lip), 0 14px 26px -16px rgba(0,0,0,.45)}
+[data-skin="pastel"] .tray::after{
+  content:""; position:absolute; top:calc(var(--frame) * -.55); left:calc(var(--frame) * -.55); width:calc(var(--frame) * 2.5); height:calc(var(--frame) * 2.5);
+  border-radius:50%; background:#FFD95A; box-shadow:0 0 0 3px var(--line-ink); pointer-events:none;
+}
+[data-skin="pastel"] .grid{border-radius:calc(var(--frame) * 1.1); box-shadow:0 0 0 3px var(--line-ink)}
+[data-skin="pastel"] .exit{box-shadow:0 -3px 0 var(--line-ink), 0 3px 0 var(--line-ink), 3px 0 0 var(--line-ink); border-radius:0 12px 12px 0}
 
 .veh,.ghost{
   position:absolute; left:0; top:0;
@@ -630,7 +657,7 @@ window.VL_LEVELS = ["ooooooooooBoooAABooooooooooooooooooo:g:2",
      this device, and in the viewer's Claude account when the page can reach it.
      ===================================================================== */
   var store = { saves: {}, active: '', sound: true }, freshDefault = false, touched = false;
-  var SKIN_ORDER = ['cars', 'medieval', 'harbor'];
+  var SKIN_ORDER = ['cars', 'medieval', 'harbor', 'pixel', 'pastel'];
   function newId() { return 's' + now().toString(36) + Math.floor(Math.random() * 1679616).toString(36); }
   function cleanSave(o, id) {
     if (!o || typeof o !== 'object') return null;
@@ -789,6 +816,22 @@ window.VL_LEVELS = ["ooooooooooBoooAABooooooooooooooooooo:g:2",
         brass(t, 233.08, 0.75, 0.3, 1100); brass(t, 311.13, 0.75, 0.26, 1100);
         [0.9, 1.22].forEach(function (d) { tone(t + d, 1568, 1568, 0.9, 'sine', 0.3, 0.004); tone(t + d, 2349, 2349, 0.5, 'sine', 0.12, 0.004); });
       }
+    },
+    pixel: { // square-wave chip sounds; the jingle is an original IV-V-I run
+      move: function (t, k) { tone(t, 660, 660, 0.045, 'square', 0.15 * k, 0.003); tone(t + 0.05, 990, 990, 0.065, 'square', 0.15 * k, 0.003); },
+      block: function (t) { tone(t, 196, 147, 0.15, 'square', 0.2, 0.003); },
+      win: function (t) {
+        [698.46, 880, 1046.5, 783.99, 987.77, 1174.66].forEach(function (f, i) { tone(t + 0.1 + i * 0.085, f, f, 0.09, 'square', 0.15, 0.003); });
+        tone(t + 0.64, 1046.5, 1046.5, 0.45, 'square', 0.15, 0.003); tone(t + 0.64, 1318.5, 1318.5, 0.45, 'square', 0.1, 0.003); tone(t + 0.64, 523.25, 523.25, 0.45, 'triangle', 0.25, 0.003);
+      }
+    },
+    pastel: { // soft toy sounds: a pop, a bonk, a little horn and a glockenspiel run
+      move: function (t, k) { tone(t, 500, 820, 0.09, 'sine', 0.5 * k, 0.01); hiss(t, 0.03, 'highpass', 3000, 2000, 0.7, 0.12 * k); },
+      block: function (t) { tone(t, 330, 210, 0.15, 'sine', 0.5, 0.008); },
+      win: function (t) {
+        [0, 0.15].forEach(function (d) { tone(t + d, 622, 622, 0.11, 'triangle', 0.32, 0.01); tone(t + d, 466, 466, 0.11, 'triangle', 0.22, 0.01); });
+        [1046.5, 1174.66, 1318.5, 1568, 2093].forEach(function (f, i) { var tt = t + 0.42 + i * 0.12; tone(tt, f, f, i === 4 ? 0.9 : 0.5, 'sine', 0.3, 0.004); tone(tt, f * 2, f * 2, 0.25, 'sine', 0.07, 0.004); });
+      }
     }
   };
   function sfx(kind, k) {
@@ -905,6 +948,71 @@ window.VL_LEVELS = ["ooooooooooBoooAABooooooooooooooooooo:g:2",
     return s;
   }
 
+  /* Pixel: every shape sits on a 10-unit grid (10 x 10 "pixels" per square). */
+  function px(x, y, w, h, attrs) { return '<rect x="' + x * 10 + '" y="' + y * 10 + '" width="' + w * 10 + '" height="' + h * 10 + '" ' + attrs + '/>'; }
+  function artPixel(v, so) {
+    var K = 'fill="#1B1230"', C = 'fill="var(--c)"', LT = 'fill="#fff" fill-opacity=".38"', DK = 'fill="#000" fill-opacity=".26"', G = 'fill="#273A78"', Y = 'fill="#FFE58A"', W = 'fill="#fff"';
+    var n = v.len * 10, s = '<g transform="translate(' + so[0] * 2 + ',' + so[1] * 2 + ')" fill="#000" fill-opacity=".3">' + px(1, 1, n - 2, 8, '') + '</g>';
+    (v.len === 2 ? [3, 13] : [3, 9, 23]).forEach(function (x) { s += px(x, 0, 4, 1, K) + px(x, 9, 4, 1, K); });
+    s += px(2, 1, n - 4, 1, K) + px(2, 8, n - 4, 1, K) + px(1, 2, 1, 6, K) + px(n - 2, 2, 1, 6, K) + px(2, 2, n - 4, 6, C) + px(2, 2, n - 4, 1, LT) + px(2, 7, n - 4, 1, DK);
+    if (v.len === 2) {
+      if (v.hero) s += px(2, 4, 16, 2, W);
+      s += px(4, 3, 2, 4, G) + px(6, 3, 6, 4, C) + px(6, 3, 6, 4, 'fill="#fff" fill-opacity=".24"') + (v.hero ? px(6, 4, 6, 2, W) : '') + px(12, 3, 2, 4, G) + px(12, 3, 1, 1, 'fill="#fff" fill-opacity=".75"') +
+        px(15, 3, 1, 4, 'fill="#000" fill-opacity=".14"') + px(17, 2, 1, 2, Y) + px(17, 6, 1, 2, Y) + px(2, 3, 1, 1, DK) + px(2, 6, 1, 1, DK);
+    } else {
+      s += px(3, 3, 17, 4, 'fill="#fff" fill-opacity=".22"') + px(7, 3, 1, 4, DK) + px(11, 3, 1, 4, DK) + px(15, 3, 1, 4, DK) + px(21, 2, 1, 6, 'fill="#000" fill-opacity=".34"') +
+        px(22, 3, 2, 4, 'fill="#fff" fill-opacity=".24"') + px(24, 3, 2, 4, G) + px(24, 3, 1, 1, 'fill="#fff" fill-opacity=".75"') + px(27, 2, 1, 2, Y) + px(27, 6, 1, 2, Y);
+    }
+    return s;
+  }
+  function floorPixel() {
+    var s = '', r, c, x, y, k;
+    for (r = 0; r < 6; r++) for (c = 0; c < 6; c++) {
+      x = c * 10; y = r * 10; k = (r * 7 + c * 3) % 5;
+      s += px(x, y, 10, 10, 'fill="var(--grass-' + ((r + c) % 2 ? 'a' : 'b') + ')"') +
+        px(x + 2 + k, y + 2, 1, 1, 'fill="var(--grass-d)"') + px(x + 3 + k, y + 3, 1, 1, 'fill="var(--grass-d)"') + px(x + 7 - k, y + 7, 1, 1, 'fill="var(--grass-d)"') + px(x + 6 - k, y + 6, 1, 1, 'fill="var(--grass-d)"');
+      if (k === 0) s += px(x + 7, y + 2, 1, 1, 'fill="#fff"') + px(x + 6, y + 3, 1, 1, 'fill="#fff"') + px(x + 8, y + 3, 1, 1, 'fill="#fff"') + px(x + 7, y + 4, 1, 1, 'fill="#fff"') + px(x + 7, y + 3, 1, 1, 'fill="#FFC21A"');
+    }
+    return s;
+  }
+
+  /* Pastello: flat colours, wobbly plum outlines, as if drawn with a felt-tip pen. */
+  function artPastel(v, so) {
+    var INK = '#4A3B52', ST = ' stroke="' + INK + '" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"', L = v.len * 100, two = v.len === 2, s, body;
+    body = two ? 'M24 11C70 8 130 9 174 12C188 13 192 26 191 50C192 75 187 88 173 89C125 92 70 91 25 88C11 87 8 74 9 50C8 25 11 12 24 11Z'
+      : 'M24 11C100 8 220 9 276 12C289 13 292 26 291 50C292 75 288 88 275 89C220 92 100 91 25 88C11 87 8 74 9 50C8 25 11 12 24 11Z';
+    s = '<path d="' + body + '" transform="translate(' + so[0] * 1.4 + ',' + so[1] * 1.4 + ')" fill="#2F5E2A" fill-opacity=".3"/>';
+    (two ? [36, 134] : [30, 96, 232]).forEach(function (x) { s += rect(x, 1, 32, 16, 8, 'fill="' + INK + '"') + rect(x, 83, 32, 16, 8, 'fill="' + INK + '"'); });
+    s += '<path d="' + body + '" fill="var(--c)"' + ST + '/>';
+    if (v.hero) s += '<path d="M13 39.5C70 38 130 40 188 39.5V46.5C130 47 70 45.5 12 46.5ZM12 54C70 53 130 55 188 54V61C130 61.5 70 60 13 61Z" fill="#fff"/>';
+    if (two) {
+      s += '<path d="M52 27C57 25 64 25 68 27C66 42 66 58 68 73C64 75 57 75 52 73C49 58 49 42 52 27Z" fill="#DFF3FC"' + ST + '/>' +
+        '<path d="M74 25C90 23 104 24 116 25C117 42 117 58 116 75C104 77 90 76 74 75C73 58 73 42 74 25Z" fill="#fff" fill-opacity=".3"/>' + (v.hero ? '<path d="M74 40H116V46.5H74ZM74 54H116V60.5H74Z" fill="#fff"/>' : '') +
+        '<path d="M122 24C131 23 140 26 143 31C146 43 146 57 143 69C140 74 131 77 122 76C119 60 119 40 122 24Z" fill="#DFF3FC"' + ST + '/>' +
+        '<path d="M128 33C131 33 134 35 135 38" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>';
+    } else {
+      s += '<path d="M26 22C80 19 150 20 204 22C207 40 207 60 204 78C150 81 80 80 26 78C23 60 23 40 26 22Z" fill="#fff" fill-opacity=".34" stroke="' + INK + '" stroke-opacity=".55" stroke-width="4" stroke-dasharray="9 8" stroke-linecap="round"/>' +
+        '<path d="M216 14C218 38 218 62 216 87" fill="none"' + ST + '/>' +
+        '<path d="M244 24C253 23 262 26 265 31C268 43 268 57 265 69C262 74 253 77 244 76C241 60 241 40 244 24Z" fill="#DFF3FC"' + ST + '/>' +
+        '<path d="M250 33C253 33 256 35 257 38" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>';
+    }
+    return s + '<circle cx="' + (L - 21) + '" cy="28" r="6.5" fill="#FFF3A6" stroke="' + INK + '" stroke-width="3.5"/><circle cx="' + (L - 21) + '" cy="72" r="6.5" fill="#FFF3A6" stroke="' + INK + '" stroke-width="3.5"/>';
+  }
+  function floorPastel() {
+    var s = '', r, c, x, y, k, a, INK = '#4A3B52';
+    for (r = 0; r < 6; r++) for (c = 0; c < 6; c++) {
+      x = c * 100; y = r * 100; k = (r * 5 + c * 7) % 6;
+      s += rect(x + 7, y + 7, 86, 86, 30, 'fill="var(--meadow)"');
+      if (k === 0 || k === 3) { // a daisy
+        var cx = x + (k ? 68 : 30), cy = y + (k ? 30 : 66);
+        for (a = 0; a < 5; a++) s += '<circle cx="' + (cx + 8 * Math.cos(a * 1.2566)).toFixed(1) + '" cy="' + (cy + 8 * Math.sin(a * 1.2566)).toFixed(1) + '" r="5.5" fill="#fff" stroke="' + INK + '" stroke-opacity=".35" stroke-width="1.5"/>';
+        s += '<circle cx="' + cx + '" cy="' + cy + '" r="4.5" fill="#FFD95A"/>';
+      } else if (k === 1) s += '<path d="M' + (x + 26) + ' ' + (y + 62) + 'c4-16 22-20 34-12c12-4 22 6 16 16c2 10-16 14-26 10c-12 4-28-2-24-14z" fill="#B98C62" stroke="' + INK + '" stroke-opacity=".45" stroke-width="3"/><path d="M' + (x + 40) + ' ' + (y + 58) + 'q8-5 16-1" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3.5" stroke-linecap="round"/>';
+      else s += '<path d="M' + (x + 30 + k * 6) + ' ' + (y + 40 + k * 4) + 'l4-11l4 11l5-9l2 9" fill="none" stroke="#6DB24A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+    return s;
+  }
+
   var COLOR = { r: ['rosso', 'rossa'], y: ['giallo', 'gialla'], b: ['blu', 'blu'], g: ['verde', 'verde'] };
   var SKINS = {
     cars: { label: 'Traffico', art: artCars, floor: floorCars, shine: true, hero: "l'auto a strisce", two: ["l'auto", 1], three: ['il camion', 0],
@@ -914,6 +1022,9 @@ window.VL_LEVELS = ["ooooooooooBoooAABooooooooooooooooooo:g:2",
     harbor: { label: 'Porto', art: artHarbor, floor: floorHarbor, shine: false, hero: 'il motoscafo a strisce', two: ['la barca', 1], three: ['la nave', 1],
       intro: "Trascina barche e navi per liberare il canale: il motoscafo a strisce deve raggiungere l'uscita del porto a destra.", out: 'Porta il motoscafo a strisce fuori dal porto.' }
   };
+  ['pixel', 'pastel'].forEach(function (k) { var o = {}; Object.keys(SKINS.cars).forEach(function (f) { o[f] = SKINS.cars[f]; }); o.shine = false; SKINS[k] = o; }); // same vocabulary as the cars
+  SKINS.pixel.label = 'Pixel'; SKINS.pixel.art = artPixel; SKINS.pixel.floor = floorPixel;
+  SKINS.pastel.label = 'Pastello'; SKINS.pastel.art = artPastel; SKINS.pastel.floor = floorPastel;
   function vehicleSVG(v, skin) {
     var sk = SKINS[skin], L = v.len * 100, vb, tf, so, shine = '';
     if (v.horiz) {
